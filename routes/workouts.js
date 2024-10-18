@@ -22,8 +22,31 @@ router.get('/workouts', async (req, res) => {
         // Filter the workouts to only include 'Run' types
         const runs = response.data.filter(workout => workout.type === 'Run');
 
-        // Render the workouts page, passing the runs, current page, and access token
-        res.render('workouts', { workouts: runs, page, accessToken });
+        // Collect unique gear IDs
+        const gearIds = new Set(runs.map(run => run.gear_id).filter(Boolean));
+
+        // Fetch gear data for each unique gear ID
+        const gearMap = new Map();
+        for (const gearId of gearIds) {
+            try {
+                const gearResponse = await axios.get(`https://www.strava.com/api/v3/gear/${gearId}`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                gearMap.set(gearId, gearResponse.data);
+            } catch (gearError) {
+                console.error(`Error fetching gear data for ID ${gearId}:`, gearError);
+                gearMap.set(gearId, { name: 'Unknown' });
+            }
+        }
+
+        // Add gear data to each run
+        const runsWithGear = runs.map(run => ({
+            ...run,
+            gear: gearMap.get(run.gear_id) || { name: 'Unknown' }
+        }));
+
+        // Render the workouts page, passing the runs with gear data, current page, and access token
+        res.render('workouts', { workouts: runsWithGear, page, accessToken });
     } catch (error) {
         console.error('Error fetching workouts:', error);
         res.send('Error fetching workouts');

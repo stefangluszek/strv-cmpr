@@ -19,6 +19,7 @@
                     <span>Distance: <%= (workout.distance / 1000).toFixed(2) %> km</span>
                     <span>Moving Time: <%= (workout.moving_time / 60).toFixed(2) %> mins</span>
                     <span>Date: <%= new Date(workout.start_date).toLocaleDateString() %></span>
+                    <span>Shoes: <%= workout.gear.name %></span>
                 </li>
             <% }) %>
         </ul>
