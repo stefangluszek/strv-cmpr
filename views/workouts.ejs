@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Running Workouts</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Your Running Workouts</h1>
+        <p>Here are your recent running workouts from Strava:</p>
+
+        <!-- Workouts List -->
+        <ul class="workouts-list">
+            <% workouts.forEach(workout => { %>
+                <li class="workout-item">
+                    <span><strong><%= workout.name %></strong></span>
+                    <span>Distance: <%= (workout.distance / 1000).toFixed(2) %> km</span>
+                    <span>Moving Time: <%= (workout.moving_time / 60).toFixed(2) %> mins</span>
+                    <span>Date: <%= new Date(workout.start_date).toLocaleDateString() %></span>
+                </li>
+            <% }) %>
+        </ul>
+
+        <!-- Load More Button -->
+        <div class="load-more">
+            <form action="/workouts" method="GET">
+                <!-- Pass the access token in the query parameter -->
+                <input type="hidden" name="access_token" value="<%= accessToken %>">
+                <input type="hidden" name="page" value="<%= page + 1 %>">
+                <button type="submit">Load More</button>
+            </form>
+        </div>
+
+        <% if (workouts.length === 0) { %>
+            <p>No more running workouts found.</p>
+        <% } %>
+    </div>
+</body>
+</html>

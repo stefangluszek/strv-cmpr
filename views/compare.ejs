@@ -1,0 +1,19 @@
+<h1>Compare Workouts</h1>
+
+<form method="GET" action="/compare">
+    <label for="workout1">Select Workout 1:</label>
+    <select name="workout1" id="workout1">
+        <% workouts.forEach(workout => { %>
+            <option value="<%= workout.id %>"><%= workout.name %></option>
+        <% }) %>
+    </select>
+
+    <label for="workout2">Select Workout 2:</label>
+    <select name="workout2" id="workout2">
+        <% workouts.forEach(workout => { %>
+            <option value="<%= workout.id %>"><%= workout.name %></option>
+        <% }) %>
+    </select>
+
+    <button type="submit">Compare</button>
+</form>
