@@ -64,21 +64,6 @@ router.get('/workouts/compare', isAuthenticated, async (req, res) => {
     if (selectedWorkouts.length !== 2) {
         return res.send('Please select exactly two workouts to compare.');
     }
-
-    try {
-        const accessToken = req.cookies.access_token;
-        const workoutDetails = await Promise.all(selectedWorkouts.map(async (workoutId) => {
-            const response = await axios.get(`https://www.strava.com/api/v3/activities/${workoutId}`, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            return response.data;
-        }));
-
-        res.render('compare', { workouts: workoutDetails });
-    } catch (error) {
-        console.error('Error fetching workout details:', error);
-        res.send('Error fetching workout details');
-    }
 });
 
 module.exports = router;

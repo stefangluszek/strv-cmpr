@@ -63,8 +63,21 @@
                 return;
             }
 
-            // Redirect to the comparison page
-            window.location.href = '/workouts/compare';
+            // Send the selected workouts to the server
+            fetch('/workouts/select', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ selectedWorkouts })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/workouts/compare';
+                } else {
+                    alert('Failed to select workouts. Please try again.');
+                }
+            });
         });
     </script>
 </body>

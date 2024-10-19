@@ -2,10 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const app = express();
 const path = require('path');
 const authRoutes = require('./routes/auth');
 const workoutRoutes = require('./routes/workouts');
+const selectRouter = require('./routes/select');
 
 // Set the view engine to ejs
 app.set('view engine', 'ejs');
@@ -25,9 +27,14 @@ app.use(session({
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
+// Use body-parser middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 // Use the auth and workout routes
 app.use(authRoutes);     // For authentication
 app.use(workoutRoutes);  // For workouts
+app.use(selectRouter);
 
 app.get('/', (req, res) => {
     res.render('index');
