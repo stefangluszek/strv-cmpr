@@ -2,15 +2,20 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// Workouts route: fetch paginated Run workouts from Strava API
-router.get('/workouts', async (req, res) => {
-    const accessToken = req.query.access_token;
+// Middleware to check if user is authenticated
+const isAuthenticated = (req, res, next) => {
+    if (req.cookies.access_token && req.session.athleteData) {
+        next();
+    } else {
+        res.redirect('/auth/strava');
+    }
+};
+
+router.get('/workouts', isAuthenticated, async (req, res) => {
+    const accessToken = req.cookies.access_token;
+    const athleteData = req.session.athleteData;
     const page = parseInt(req.query.page) || 1;  // Default to page 1 if no page query parameter
     const limit = 9;  // Limit results to 9 per page
-
-    if (!accessToken) {
-        return res.send('Access token is missing or invalid');
-    }
 
     try {
         // Fetch user's workouts from Strava API with pagination

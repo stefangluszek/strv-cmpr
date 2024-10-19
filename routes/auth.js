@@ -9,7 +9,7 @@ router.get('/auth/strava', (req, res) => {
 
 // Strava OAuth callback route
 router.get('/auth/strava/callback', async (req, res) => {
-    const code = req.query.code;
+    const { code } = req.query;
 
     try {
         // Exchange authorization code for access token
@@ -20,13 +20,25 @@ router.get('/auth/strava/callback', async (req, res) => {
             grant_type: 'authorization_code'
         });
 
-        const accessToken = tokenResponse.data.access_token;
 
-        // Redirect to workouts page with access_token in query
-        res.redirect(`/workouts?access_token=${accessToken}`);
+        const { access_token, refresh_token, expires_at } = tokenResponse.data;
+
+        // Fetch athlete data
+        const athleteResponse = await axios.get('https://www.strava.com/api/v3/athlete', {
+            headers: { Authorization: `Bearer ${access_token}` }
+        });
+
+        const athleteData = athleteResponse.data;
+
+        // Store tokens and athlete data in cookies
+        res.cookie('access_token', access_token, { httpOnly: true, secure: true, maxAge: (expires_at - Math.floor(Date.now() / 1000)) * 1000 });
+        req.session.athleteData = athleteData;
+
+        // Redirect to workouts page or home page
+        res.redirect('/workouts');
     } catch (error) {
-        console.error('Error getting access token:', error);
-        res.send('Failed to authenticate with Strava');
+        console.error('Error during Strava authentication:', error);
+        res.status(500).send('Authentication failed');
     }
 });
 
