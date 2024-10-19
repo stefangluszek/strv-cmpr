@@ -59,10 +59,29 @@ router.get('/workouts', isAuthenticated, async (req, res) => {
 });
 
 router.get('/workouts/compare', isAuthenticated, async (req, res) => {
-    const selectedWorkouts = JSON.parse(req.session.selectedWorkouts || '[]');
+    const selectedWorkouts = req.session.selectedWorkouts || [];
 
     if (selectedWorkouts.length !== 2) {
         return res.send('Please select exactly two workouts to compare.');
+    }
+
+    const accessToken = req.cookies.access_token;
+    const streams = [];
+
+    try {
+        for (const workout of selectedWorkouts) {
+            const streamResponse = await axios.get(`https://www.strava.com/api/v3/activities/${workout}/streams`, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                params: { keys: 'time,distance,heartrate,cadence,velocity_smooth', key_by_type: true }
+            });
+            streams.push({ workoutId: workout, stream: streamResponse.data });
+        }
+
+        // Render the compare page, passing the selected workouts and their streams
+        res.render('compare', { streams });
+    } catch (error) {
+        console.error('Error fetching activity streams:', error);
+        res.send('Error fetching activity streams');
     }
 });
 

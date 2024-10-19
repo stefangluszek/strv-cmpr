@@ -5,21 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compare Workouts</title>
     <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Compare Workouts</h1>
         <div class="workout-comparison">
-            <% workouts.forEach(workout => { %>
-                <div class="workout-details">
-                    <h2><%= workout.name %></h2>
-                    <p>Distance: <%= (workout.distance / 1000).toFixed(2) %> km</p>
-                    <p>Moving Time: <%= (workout.moving_time / 60).toFixed(2) %> mins</p>
-                    <p>Date: <%= new Date(workout.start_date).toLocaleDateString() %></p>
-                    <p>Shoes: <%= workout.gear ? workout.gear.name : 'Unknown' %></p>
-                </div>
-            <% }) %>
+            <canvas id="heartrateChart"></canvas>
+            <canvas id="cadenceChart"></canvas>
+            <canvas id="velocityChart"></canvas>
         </div>
     </div>
+
+    <script>
+        const streams = <%- JSON.stringify(streams) %>;
+
+        const labels1 = streams[0]?.stream.time?.data.map((_, i) => i) || [];
+        const labels2 = streams[1]?.stream.time?.data.map((_, i) => i) || [];
+
+        function movingAverage(data, windowSize) {
+            let result = [];
+            for (let i = 0; i < data.length - windowSize + 1; i++) {
+                const window = data.slice(i, i + windowSize);
+                const average = window.reduce((sum, value) => sum + value, 0) / windowSize;
+                result.push(average);
+            }
+            return result;
+        }
+
+        function createChart(canvasId, label, data1, data2, color1, color2) {
+            new Chart(document.getElementById(canvasId), {
+                type: 'line',
+                data: {
+                    labels: labels1.length > labels2.length ? labels1.slice(0, data1.length) : labels2.slice(0, data2.length),
+                    datasets: [
+                        {
+                            label: `${label} (Workout ${streams[0]?.workoutId})`,
+                            data: data1,
+                            borderColor: color1,
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: `${label} (Workout ${streams[1]?.workoutId})`,
+                            data: data2,
+                            borderColor: color2,
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom' // Position the legend at the bottom
+                        }
+                    }
+                }
+            });
+        }
+
+        if (streams[0]?.stream.heartrate?.data && streams[1]?.stream.heartrate?.data) {
+            const smoothedHeartrate1 = movingAverage(streams[0].stream.heartrate.data, 30);
+            const smoothedHeartrate2 = movingAverage(streams[1].stream.heartrate.data, 30);
+            createChart('heartrateChart', 'Heartrate', smoothedHeartrate1, smoothedHeartrate2, 'green', 'red');
+        }
+
+        if (streams[0]?.stream.cadence?.data && streams[1]?.stream.cadence?.data) {
+            const doubledCadence1 = streams[0].stream.cadence.data.map(value => value * 2);
+            const doubledCadence2 = streams[1].stream.cadence.data.map(value => value * 2);
+            const smoothedCadence1 = movingAverage(doubledCadence1, 30);
+            const smoothedCadence2 = movingAverage(doubledCadence2, 30);
+            createChart('cadenceChart', 'Cadence', smoothedCadence1, smoothedCadence2, 'green', 'red');
+        }
+
+        if (streams[0]?.stream.velocity_smooth?.data && streams[1]?.stream.velocity_smooth?.data) {
+            const smoothedVelocity1 = movingAverage(streams[0].stream.velocity_smooth.data, 30);
+            const smoothedVelocity2 = movingAverage(streams[1].stream.velocity_smooth.data, 30);
+            createChart('velocityChart', 'Velocity', smoothedVelocity1, smoothedVelocity2, 'green', 'red');
+        }
+    </script>
 </body>
 </html>

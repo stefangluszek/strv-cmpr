@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 
 router.post('/workouts/select', (req, res) => {
-    console.log(req.body);
     const selectedWorkouts = req.body.selectedWorkouts;
 
     if (!Array.isArray(selectedWorkouts) || selectedWorkouts.length !== 2) {
