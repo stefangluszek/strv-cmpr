@@ -1,19 +1,25 @@
-<h1>Compare Workouts</h1>
-
-<form method="GET" action="/compare">
-    <label for="workout1">Select Workout 1:</label>
-    <select name="workout1" id="workout1">
-        <% workouts.forEach(workout => { %>
-            <option value="<%= workout.id %>"><%= workout.name %></option>
-        <% }) %>
-    </select>
-
-    <label for="workout2">Select Workout 2:</label>
-    <select name="workout2" id="workout2">
-        <% workouts.forEach(workout => { %>
-            <option value="<%= workout.id %>"><%= workout.name %></option>
-        <% }) %>
-    </select>
-
-    <button type="submit">Compare</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Workouts</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Compare Workouts</h1>
+        <div class="workout-comparison">
+            <% workouts.forEach(workout => { %>
+                <div class="workout-details">
+                    <h2><%= workout.name %></h2>
+                    <p>Distance: <%= (workout.distance / 1000).toFixed(2) %> km</p>
+                    <p>Moving Time: <%= (workout.moving_time / 60).toFixed(2) %> mins</p>
+                    <p>Date: <%= new Date(workout.start_date).toLocaleDateString() %></p>
+                    <p>Shoes: <%= workout.gear ? workout.gear.name : 'Unknown' %></p>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+</body>
+</html>

@@ -15,6 +15,7 @@
         <ul class="workouts-list">
             <% workouts.forEach(workout => { %>
                 <li class="workout-item">
+                    <input type="checkbox" class="workout-select" value="<%= workout.id %>">
                     <span><strong><%= workout.name %></strong></span>
                     <span>Distance: <%= (workout.distance / 1000).toFixed(2) %> km</span>
                     <span>Moving Time: <%= (workout.moving_time / 60).toFixed(2) %> mins</span>
@@ -25,18 +26,46 @@
         </ul>
 
         <!-- Load More Button -->
-        <div class="load-more">
+        <div class="styled-button">
             <form action="/workouts" method="GET">
                 <!-- Pass the access token in the query parameter -->
                 <input type="hidden" name="access_token" value="<%= accessToken %>">
                 <input type="hidden" name="page" value="<%= page + 1 %>">
-                <button type="submit">Load More</button>
+                <button type="submit" class="styled-button">Load More</button>
             </form>
+            <button id="compare-button" class="styled-button">Compare Selected Workouts</button>
         </div>
 
         <% if (workouts.length === 0) { %>
             <p>No more running workouts found.</p>
         <% } %>
     </div>
+
+    <script>
+        // Function to update session storage with selected workouts
+        function updateSelectedWorkouts() {
+            const selectedWorkouts = Array.from(document.querySelectorAll('.workout-select:checked'))
+                .map(checkbox => checkbox.value);
+
+            sessionStorage.setItem('selectedWorkouts', JSON.stringify(selectedWorkouts));
+        }
+
+        // Add event listeners to checkboxes
+        document.querySelectorAll('.workout-select').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedWorkouts);
+        });
+
+        document.getElementById('compare-button').addEventListener('click', function() {
+            const selectedWorkouts = JSON.parse(sessionStorage.getItem('selectedWorkouts') || '[]');
+
+            if (selectedWorkouts.length !== 2) {
+                alert('Please select exactly two workouts to compare.');
+                return;
+            }
+
+            // Redirect to the comparison page
+            window.location.href = '/workouts/compare';
+        });
+    </script>
 </body>
 </html>
